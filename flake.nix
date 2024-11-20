@@ -36,6 +36,11 @@
       default = self.apps.${system}.${projectName};
     });
 
+    templates.default = {
+      path = ./.;
+      description = "Generic Nix template.";
+    };
+
     formatter = forAllSystems (system: pkgs: pkgs.alejandra);
 
     devShells = forAllSystems (system: pkgs: {
