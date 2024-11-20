@@ -23,15 +23,16 @@
     forAllSystems = forSystems supportedSystems;
   in {
     packages = forAllSystems (system: pkgs: {
-      ${projectName} = {
-        # TODO add derivation / builder
-      };
+      # TODO add derivation / builder
+      ${projectName} = pkgs.hello;
       default = self.packages.${system}.${projectName};
     });
 
     apps = forAllSystems (system: pkgs: {
-      ${projectName} = {
         # TODO add derivation / builder
+      ${projectName} = {
+        type = "app";
+        program = self.packages.${system}.${projectName};
       };
       default = self.apps.${system}.${projectName};
     });
