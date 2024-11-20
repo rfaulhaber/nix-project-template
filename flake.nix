@@ -5,26 +5,45 @@
     nixpkgs.url = "github:nixos/nixpkgs";
     # for the unstable branch:
     # nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable"
-    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = import nixpkgs {
-            inherit system;
-          };
-          projectName = "nix-project-template";
-      in {
-        packages.default = self.packages.${system}.${projectName};
+  outputs = {
+    self,
+    nixpkgs,
+    ...
+  }: let
+    projectName = "nix-template";
+    supportedSystems = [
+      "x86_64-linux"
+      # TODO add other systems as needed
+    ];
+    forSystems = systems: f:
+      nixpkgs.lib.genAttrs systems
+      (system: f system (import nixpkgs {inherit system;}));
+    forAllSystems = forSystems supportedSystems;
+  in {
+    packages = forAllSystems (system: pkgs: {
+      ${projectName} = {
+        # TODO add derivation / builder
+      };
+      default = self.packages.${system}.${projectName};
+    });
 
-        apps.${projectName} = flake-utils.lib.mkApp {drv = self.packages.${projectName};};
-        apps.default = self.apps.${system}.${projectName};
+    apps = forAllSystems (system: pkgs: {
+      ${projectName} = {
+        # TODO add derivation / builder
+      };
+      default = self.apps.${system}.${projectName};
+    });
 
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            # TODO add dev dependencies here
-          ];
-        };
-      }
-    );
+    formatter = forAllSystems (system: pkgs: pkgs.alejandra);
+
+    devShells = forAllSystems (system: pkgs: {
+      default = pkgs.mkShell {
+        buildInputs = with pkgs; [
+          # TODO add dev dependencies here
+        ];
+      };
+    });
+  };
 }
